@@ -1,40 +1,74 @@
 async function sortear() {
-    // Pegar o total de resultados
-    const totalResultados = Number(document.querySelector('#totalResultadosInput').value)
+    const totalResultados = Number(document.querySelector('#totalResultadosInput').value);
+    const menorValor = Number(document.querySelector('#menorValorInput').value);
+    const maiorValor = Number(document.querySelector('#maiorValorInput').value);
 
-    // Pegar o menor valor
-    const menorValor = Number(document.querySelector('#menorValorInput').value)
+    const numerosSorteados = new Set([...document.querySelectorAll('.result-value')].map(div => Number(div.innerText)));
 
-    // Pegar o maior valor
-    const maiorValor = Number(document.querySelector('#maiorValorInput').value)
+    await contagemRegressiva(5); // 5 segundos de contagem regressiva
 
-    for(let j = 0; j < 20; j++) {    
-        
-        // Limpar resultados antigos no HTML existente
-        const elementoHTMLResultValues = document.querySelector('.results-values')
-        elementoHTMLResultValues.innerHTML = ''
-    
-        for(let i = 0; i < totalResultados; i++) {
-    
-        // Gera um numero aleatório entre o menor e maior valor
-        const resultado = Math.floor(Math.random() * (maiorValor - menorValor + 1)) + menorValor
-    
-        // Gera um elemento HTML para o resultado
-        const elementoHTMLDoResultado = document.createElement('div')
-        elementoHTMLDoResultado.classList.add('result-value')
-        elementoHTMLDoResultado.innerText = resultado
-    
-    
-    
-        // Adicionar o elemento criado dentro do HTML existente
-        elementoHTMLResultValues.append(elementoHTMLDoResultado)
+    const novosNumeros = [];
+    while (novosNumeros.length < totalResultados) {
+        const resultado = Math.floor(Math.random() * (maiorValor - menorValor + 1)) + menorValor;
+        if (!numerosSorteados.has(resultado)) {
+            numerosSorteados.add(resultado);
+            novosNumeros.push(resultado);
         }
-        await wait(150)
-    }    
+    }
+
+    const elementoHTMLResultValues = document.querySelector('.results-values');
+
+    novosNumeros.forEach(resultado => {
+        const elementoHTMLDoResultado = document.createElement('div');
+        elementoHTMLDoResultado.classList.add('result-value');
+        elementoHTMLDoResultado.innerText = resultado;
+        elementoHTMLResultValues.append(elementoHTMLDoResultado);
+    });
 }
 
-function wait(tempo){
+function wait(tempo) {
     return new Promise((resolve) => {
-        setTimeout(() => resolve(), tempo)
-    })
+        setTimeout(() => resolve(), tempo);
+    });
+}
+
+function contagemRegressiva(segundos) {
+    return new Promise((resolve) => {
+        const overlay = document.querySelector('.countdown-overlay');
+        let elementoHTMLCountdown = document.querySelector('.countdown');
+
+        if (!elementoHTMLCountdown) {
+            elementoHTMLCountdown = document.createElement('div');
+            elementoHTMLCountdown.classList.add('countdown');
+            document.body.appendChild(elementoHTMLCountdown);
+        }
+
+        overlay.style.display = 'flex';
+
+        const mostrarContador = (contador) => {
+            elementoHTMLCountdown.innerText = contador;
+            elementoHTMLCountdown.classList.remove('fade');
+            void elementoHTMLCountdown.offsetWidth;
+            elementoHTMLCountdown.classList.add('fade');
+        };
+
+        let contador = segundos;
+        mostrarContador(contador);
+
+        const interval = setInterval(() => {
+            contador--;
+            if (contador >= 0) {
+                mostrarContador(contador);
+            } else {
+                clearInterval(interval);
+                overlay.style.display = 'none';
+                resolve();
+            }
+        }, 1000);
+    });
+}
+
+function limparSorteador() {
+    const elementoHTMLResultValues = document.querySelector('.results-values');
+    elementoHTMLResultValues.innerHTML = ''; // Limpa os resultados
 }
